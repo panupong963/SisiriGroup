@@ -37,16 +37,38 @@
         async function sendToN8n() {
             const profile = await liff.getProfile();
             const productInfo = document.getElementById('product').value.split('|');
+            
             const data = {
                 userId: profile.userId,
                 displayName: profile.displayName,
                 customerName: document.getElementById('customerName').value,
                 productName: productInfo[0],
-                price: productInfo[1],
-                qty: document.getElementById('qty').value
+                price: parseFloat(productInfo[1]),
+                qty: parseInt(document.getElementById('qty').value),
+                total: parseFloat(productInfo[1]) * parseInt(document.getElementById('qty').value),
+                date: new Date().toLocaleString('th-TH')
             };
-            alert("บันทึกข้อมูลสำเร็จ! (Webhook n8n จะเชื่อมต่อในขั้นตอนถัดไป)");
-            liff.closeWindow();
+
+            // วาง URL ที่ก๊อบมาจาก n8n Cloud (Test URL) ในเครื่องหมายคำพูดด้านล่างนี้ครับ
+            const n8n_webhook_url = "https://klanaja.app.n8n.cloud/webhook-test/SisiriGroup";
+
+            try {
+                const response = await fetch(n8n_webhook_url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert("ส่งข้อมูลสำเร็จ! ตรวจสอบที่หน้า n8n ได้เลยครับ");
+                    liff.closeWindow();
+                } else {
+                    alert("ส่งข้อมูลไม่สำเร็จ กรุณาตรวจสอบ Webhook URL");
+                }
+            } catch (error) {
+                console.error(error);
+                alert("เกิดข้อผิดพลาด: " + error.message);
+            }
         }
         main();
     </script>
